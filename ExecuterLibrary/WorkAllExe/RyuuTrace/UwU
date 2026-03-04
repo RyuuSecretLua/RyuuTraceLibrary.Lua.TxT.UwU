@@ -17,27 +17,33 @@ local C = {
 	stroke     = Color3.fromRGB(120,0,45),
 	orbA       = Color3.fromRGB(190,0,55),
 	orbB       = Color3.fromRGB(90,0,160),
-	toggleOn   = Color3.fromRGB(0,175,55),
+	toggleOn   = Color3.fromRGB(110,0,190),
 	toggleOff  = Color3.fromRGB(70,5,12),
 	tabActive  = Color3.fromRGB(130,0,22),
 	tabIdle    = Color3.fromRGB(18,7,32),
-	btnIdle    = Color3.fromRGB(55,4,13),
-	btnHover   = Color3.fromRGB(115,0,28),
+	btnIdle    = Color3.fromRGB(20,8,35),
+	btnHover   = Color3.fromRGB(50,0,80),
 	inputBg    = Color3.fromRGB(14,5,26),
 	sliderFill = Color3.fromRGB(160,0,25),
-	dropBg     = Color3.fromRGB(16,6,30),
-	dropItem   = Color3.fromRGB(24,9,42),
+	dropBg     = Color3.fromRGB(20,8,35),
+	dropItem   = Color3.fromRGB(28,10,45),
 	dropHover  = Color3.fromRGB(50,0,80),
 }
 
-local function Tw(o,p,t,s,d) return TweenService:Create(o,TweenInfo.new(t or 0.2,s or Enum.EasingStyle.Quad,d or Enum.EasingDirection.Out),p) end
-local function Cor(p,r) local c=Instance.new("UICorner") c.CornerRadius=UDim.new(0,r or 8) c.Parent=p return c end
-local function Str(p,col,th) local s=Instance.new("UIStroke") s.Color=col or C.stroke s.Thickness=th or 1.5 s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border s.Parent=p return s end
-
+local function Tw(o,p,t,s,d)
+	return TweenService:Create(o,TweenInfo.new(t or 0.2,s or Enum.EasingStyle.Quad,d or Enum.EasingDirection.Out),p)
+end
+local function Cor(p,r)
+	local c=Instance.new("UICorner") c.CornerRadius=UDim.new(0,r or 8) c.Parent=p return c
+end
+local function Str(p,col,th)
+	local s=Instance.new("UIStroke") s.Color=col or C.stroke s.Thickness=th or 1.5 s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border s.Parent=p return s
+end
 local function Orb(parent,pos,sz,col)
 	local f=Instance.new("Frame") f.Size=UDim2.new(0,sz,0,sz) f.Position=pos
 	f.BackgroundColor3=col f.BackgroundTransparency=0.35 f.BorderSizePixel=0 f.ZIndex=1 f.Parent=parent
-	Cor(f,sz/2) local s=Instance.new("UIStroke",f) s.Color=col s.Thickness=2.5
+	Cor(f,sz/2)
+	local s=Instance.new("UIStroke",f) s.Color=col s.Thickness=2.5
 	task.spawn(function()
 		while f.Parent do
 			Tw(f,{BackgroundTransparency=0.75},0.85,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut):Play() task.wait(0.85)
@@ -47,11 +53,11 @@ local function Orb(parent,pos,sz,col)
 end
 
 function RyuuTrace.NewWindow(config)
-	local title    = config.Title         or "RyuuTrace"
-	local subtitle = config.Subtitle      or ""
-	local loadTitle= config.LoadTitle     or title
-	local loadSub  = config.LoadSubtitle  or subtitle
-	local icon     = config.Icon          or "RT"
+	local title      = config.Title         or "RyuuTrace"
+	local subtitle   = config.Subtitle      or ""
+	local loadTitle  = config.LoadTitle     or title
+	local loadSub    = config.LoadSubtitle  or subtitle
+	local icon       = config.Icon          or "RT"
 
 	local W        = 420
 	local TOPBAR_H = 46
@@ -75,9 +81,11 @@ function RyuuTrace.NewWindow(config)
 		l.BackgroundTransparency=1 l.Text=txt l.TextColor3=Color3.new(1,1,1)
 		l.Font=Enum.Font.Code l.TextSize=sz or 12 l.TextXAlignment=Enum.TextXAlignment.Center l.ZIndex=21 l.Parent=LS return l
 	end
-	LSLbl(loadTitle,48,16) LSLbl(loadSub,72,11)
-	local dotLbl=LSLbl("Loading.",104,12)
-	local enjoyLbl=LSLbl("",128,10)
+
+	LSLbl(loadTitle,48,16)
+	LSLbl(loadSub,72,11)
+	local dotLbl  = LSLbl("Loading.",104,12)
+	local enjoyLbl= LSLbl("",128,10)
 
 	local sc=Instance.new("Frame") sc.Size=UDim2.new(0,52,0,52) sc.Position=UDim2.new(0.5,-26,0,150) sc.BackgroundTransparency=1 sc.ZIndex=21 sc.Parent=LS
 	local sa=Instance.new("Frame") sa.Size=UDim2.new(1,0,1,0) sa.BackgroundTransparency=1 sa.ZIndex=22 sa.Parent=sc
@@ -97,8 +105,8 @@ function RyuuTrace.NewWindow(config)
 			Tw(ss,{Color=C.accent1},0.6,Enum.EasingStyle.Sine):Play() task.wait(0.6)
 		end
 	end)
-	local dl={"Loading.","Loading..","Loading..."} local di=1
-	task.spawn(function() while LS.Parent do dotLbl.Text=dl[di] di=di%3+1 task.wait(0.44) end end)
+	local dlst={"Loading.","Loading..","Loading..."} local di=1
+	task.spawn(function() while LS.Parent do dotLbl.Text=dlst[di] di=di%3+1 task.wait(0.44) end end)
 	task.delay(2.5,function() enjoyLbl.Text="Enjoy!" end)
 	task.delay(3.5,function()
 		pulsing=false spinConn:Disconnect()
@@ -116,15 +124,13 @@ function RyuuTrace.NewWindow(config)
 
 	Orb(win,UDim2.new(0,-7,0,-7),20,C.orbA)
 	Orb(win,UDim2.new(1,-13,0,-7),20,C.orbB)
-	Orb(win,UDim2.new(0,-7,1,-13),20,C.orbB)
-	Orb(win,UDim2.new(1,-13,1,-13),20,C.orbA)
 
 	local tb=Instance.new("Frame") tb.Size=UDim2.new(1,0,0,TOPBAR_H) tb.BackgroundColor3=C.topbar tb.BorderSizePixel=0 tb.ZIndex=4 tb.Parent=win Cor(tb,12)
 	local tbg=Instance.new("UIGradient") tbg.Color=ColorSequence.new(Color3.fromRGB(55,8,85),Color3.fromRGB(38,4,12)) tbg.Rotation=0 tbg.Parent=tb
 	local tbline=Instance.new("Frame") tbline.Size=UDim2.new(1,0,0,1.5) tbline.Position=UDim2.new(0,0,1,-1.5) tbline.BackgroundColor3=C.accent1 tbline.BorderSizePixel=0 tbline.Parent=tb
 	local tlg=Instance.new("UIGradient") tlg.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.new(0,0,0)),ColorSequenceKeypoint.new(0.5,C.accent1),ColorSequenceKeypoint.new(1,Color3.new(0,0,0))} tlg.Parent=tbline
 
-	local iconL=Instance.new("TextLabel") iconL.Size=UDim2.new(0,38,0,36) iconL.Position=UDim2.new(0,8,0,5) iconL.BackgroundTransparency=1 iconL.Text=icon iconL.Font=Enum.Font.GothamBold iconL.TextSize=10 iconL.TextColor3=C.accent1 iconL.ZIndex=5 iconL.Parent=tb
+	local iconL=Instance.new("TextLabel") iconL.Size=UDim2.new(0,38,0,36) iconL.Position=UDim2.new(0,8,0,5) iconL.BackgroundTransparency=1 iconL.Text=icon iconL.Font=Enum.Font.GothamBold iconL.TextSize=14 iconL.TextColor3=C.accent1 iconL.ZIndex=5 iconL.Parent=tb
 	local titleL=Instance.new("TextLabel") titleL.Size=UDim2.new(1,-120,0,16) titleL.Position=UDim2.new(0,46,0,7) titleL.BackgroundTransparency=1 titleL.Text=title titleL.Font=Enum.Font.Code titleL.TextSize=13 titleL.TextColor3=Color3.new(1,1,1) titleL.TextXAlignment=Enum.TextXAlignment.Left titleL.ZIndex=5 titleL.Parent=tb
 	local subL=Instance.new("TextLabel") subL.Size=UDim2.new(1,-120,0,13) subL.Position=UDim2.new(0,46,0,26) subL.BackgroundTransparency=1 subL.Text=subtitle subL.Font=Enum.Font.Code subL.TextSize=10 subL.TextColor3=C.textDim subL.TextXAlignment=Enum.TextXAlignment.Left subL.ZIndex=5 subL.Parent=tb
 
@@ -134,11 +140,11 @@ function RyuuTrace.NewWindow(config)
 		b.TextColor3=Color3.new(1,1,1) b.AutoButtonColor=false b.BorderSizePixel=0 b.ZIndex=5 b.Parent=tb
 		Cor(b,6) return b
 	end
-	local minBtn=WinCtrlBtn("-",-66,C.panel)
-	local closeBtn=WinCtrlBtn("X",-32,Color3.fromRGB(85,4,14))
+	local minBtn   = WinCtrlBtn("-",-66,C.panel)
+	local closeBtn = WinCtrlBtn("X",-32,Color3.fromRGB(85,4,14))
 	Str(minBtn,C.accent2,1) Str(closeBtn,C.accent1,1)
-	minBtn.MouseEnter:Connect(function() Tw(minBtn,{BackgroundColor3=C.accent2},0.14):Play() end)
-	minBtn.MouseLeave:Connect(function() Tw(minBtn,{BackgroundColor3=C.panel},0.14):Play() end)
+	minBtn.MouseEnter:Connect(function()   Tw(minBtn,{BackgroundColor3=C.accent2},0.14):Play() end)
+	minBtn.MouseLeave:Connect(function()   Tw(minBtn,{BackgroundColor3=C.panel},0.14):Play() end)
 	closeBtn.MouseEnter:Connect(function() Tw(closeBtn,{BackgroundColor3=C.accent1},0.14):Play() end)
 	closeBtn.MouseLeave:Connect(function() Tw(closeBtn,{BackgroundColor3=Color3.fromRGB(85,4,14)},0.14):Play() end)
 
@@ -151,8 +157,8 @@ function RyuuTrace.NewWindow(config)
 	local sg=Instance.new("UIGradient") sg.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.new(0,0,0)),ColorSequenceKeypoint.new(0.5,C.accent1),ColorSequenceKeypoint.new(1,Color3.new(0,0,0))} sg.Parent=sep
 
 	local contentFrame=Instance.new("Frame")
-	contentFrame.Size=UDim2.new(1,-24,1,-CONT_Y-4)
-	contentFrame.Position=UDim2.new(0,12,0,CONT_Y)
+	contentFrame.Size=UDim2.new(1,-28,1,-CONT_Y-4)
+	contentFrame.Position=UDim2.new(0,14,0,CONT_Y)
 	contentFrame.BackgroundTransparency=1 contentFrame.ClipsDescendants=true contentFrame.ZIndex=3 contentFrame.Parent=win
 
 	local dragging,dragStart,startPos=false,nil,nil
@@ -205,8 +211,13 @@ function RyuuTrace.NewWindow(config)
 		activeTab=name
 		for n,data in pairs(tabs) do
 			data.page.Visible=(n==name)
-			if n==name then Tw(data.btn,{BackgroundColor3=C.tabActive},0.15):Play() data.btn.TextColor3=Color3.new(1,1,1)
-			else Tw(data.btn,{BackgroundColor3=C.tabIdle},0.15):Play() data.btn.TextColor3=C.textDim end
+			if n==name then
+				Tw(data.btn,{BackgroundColor3=C.tabActive},0.15):Play()
+				data.btn.TextColor3=Color3.new(1,1,1)
+			else
+				Tw(data.btn,{BackgroundColor3=C.tabIdle},0.15):Play()
+				data.btn.TextColor3=C.textDim
+			end
 		end
 	end
 
@@ -256,8 +267,7 @@ function RyuuTrace.NewWindow(config)
 		end
 
 		function tabObj:AddButton(label,callback)
-			local btn2=Instance.new("TextButton") btn2.Size=UDim2.new(1,0,0,36) btn2.Text=label btn2.Font=Enum.Font.Code btn2.TextSize=12 btn2.BackgroundColor3=C.btnIdle btn2.TextColor3=Color3.new(1,1,1) btn2.AutoButtonColor=false btn2.BorderSizePixel=0 btn2.ZIndex=4 btn2.Parent=page Cor(btn2,8) Str(btn2,C.accent1,1.5)
-			local g=Instance.new("UIGradient") g.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.fromRGB(75,0,18)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(105,0,28)),ColorSequenceKeypoint.new(1,Color3.fromRGB(55,0,55))} g.Rotation=90 g.Parent=btn2
+			local btn2=Instance.new("TextButton") btn2.Size=UDim2.new(1,0,0,36) btn2.Text=label btn2.Font=Enum.Font.Code btn2.TextSize=12 btn2.BackgroundColor3=C.btnIdle btn2.TextColor3=Color3.new(1,1,1) btn2.AutoButtonColor=false btn2.BorderSizePixel=0 btn2.ZIndex=4 btn2.Parent=page Cor(btn2,8) Str(btn2,C.stroke,1)
 			btn2.MouseEnter:Connect(function() Tw(btn2,{BackgroundColor3=C.btnHover},0.14):Play() end)
 			btn2.MouseLeave:Connect(function() Tw(btn2,{BackgroundColor3=C.btnIdle},0.14):Play() end)
 			btn2.MouseButton1Click:Connect(function() if callback then callback() end end)
