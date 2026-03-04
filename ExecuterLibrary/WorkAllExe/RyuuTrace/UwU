@@ -1,0 +1,382 @@
+local Players      = game:GetService("Players")
+local UIS          = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService   = game:GetService("RunService")
+local LP           = Players.LocalPlayer
+
+local RyuuTrace = {}
+
+local C = {
+	bg         = Color3.fromRGB(10,5,18),
+	panel      = Color3.fromRGB(20,8,35),
+	topbar     = Color3.fromRGB(32,10,50),
+	accent1    = Color3.fromRGB(170,0,28),
+	accent2    = Color3.fromRGB(110,0,190),
+	textMain   = Color3.fromRGB(240,220,240),
+	textDim    = Color3.fromRGB(140,100,150),
+	stroke     = Color3.fromRGB(120,0,45),
+	orbA       = Color3.fromRGB(190,0,55),
+	orbB       = Color3.fromRGB(90,0,160),
+	toggleOn   = Color3.fromRGB(0,175,55),
+	toggleOff  = Color3.fromRGB(70,5,12),
+	tabActive  = Color3.fromRGB(130,0,22),
+	tabIdle    = Color3.fromRGB(18,7,32),
+	btnIdle    = Color3.fromRGB(55,4,13),
+	btnHover   = Color3.fromRGB(115,0,28),
+	inputBg    = Color3.fromRGB(14,5,26),
+	sliderFill = Color3.fromRGB(160,0,25),
+	dropBg     = Color3.fromRGB(16,6,30),
+	dropItem   = Color3.fromRGB(24,9,42),
+	dropHover  = Color3.fromRGB(50,0,80),
+}
+
+local function Tw(o,p,t,s,d) return TweenService:Create(o,TweenInfo.new(t or 0.2,s or Enum.EasingStyle.Quad,d or Enum.EasingDirection.Out),p) end
+local function Cor(p,r) local c=Instance.new("UICorner") c.CornerRadius=UDim.new(0,r or 8) c.Parent=p return c end
+local function Str(p,col,th) local s=Instance.new("UIStroke") s.Color=col or C.stroke s.Thickness=th or 1.5 s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border s.Parent=p return s end
+
+local function Orb(parent,pos,sz,col)
+	local f=Instance.new("Frame") f.Size=UDim2.new(0,sz,0,sz) f.Position=pos
+	f.BackgroundColor3=col f.BackgroundTransparency=0.35 f.BorderSizePixel=0 f.ZIndex=1 f.Parent=parent
+	Cor(f,sz/2) local s=Instance.new("UIStroke",f) s.Color=col s.Thickness=2.5
+	task.spawn(function()
+		while f.Parent do
+			Tw(f,{BackgroundTransparency=0.75},0.85,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut):Play() task.wait(0.85)
+			Tw(f,{BackgroundTransparency=0.2},0.85,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut):Play() task.wait(0.85)
+		end
+	end)
+end
+
+function RyuuTrace.NewWindow(config)
+	local title    = config.Title         or "RyuuTrace"
+	local subtitle = config.Subtitle      or ""
+	local loadTitle= config.LoadTitle     or title
+	local loadSub  = config.LoadSubtitle  or subtitle
+	local icon     = config.Icon          or "RT"
+
+	local W        = 420
+	local TOPBAR_H = 46
+	local TABBAR_H = 30
+	local SEP_Y    = TOPBAR_H + TABBAR_H + 2
+	local CONT_Y   = SEP_Y + 5
+	local WIN_H    = 320
+
+	local gui = Instance.new("ScreenGui")
+	gui.Name="RyuuTrace_GUI" gui.ResetOnSpawn=false gui.DisplayOrder=999 gui.IgnoreGuiInset=true
+	gui.Parent=LP:WaitForChild("PlayerGui")
+
+	local LS=Instance.new("Frame")
+	LS.Size=UDim2.new(0,W,0,230) LS.Position=UDim2.new(0.5,-W/2,0.5,-115)
+	LS.BackgroundColor3=C.bg LS.BorderSizePixel=0 LS.ZIndex=20 LS.Parent=gui
+	Cor(LS,14) Str(LS,C.accent1,2)
+	local lsg=Instance.new("UIGradient") lsg.Color=ColorSequence.new(C.bg,Color3.fromRGB(28,5,48)) lsg.Rotation=130 lsg.Parent=LS
+
+	local function LSLbl(txt,y,sz)
+		local l=Instance.new("TextLabel") l.Size=UDim2.new(1,0,0,22) l.Position=UDim2.new(0,0,0,y)
+		l.BackgroundTransparency=1 l.Text=txt l.TextColor3=Color3.new(1,1,1)
+		l.Font=Enum.Font.Code l.TextSize=sz or 12 l.TextXAlignment=Enum.TextXAlignment.Center l.ZIndex=21 l.Parent=LS return l
+	end
+	LSLbl(loadTitle,48,16) LSLbl(loadSub,72,11)
+	local dotLbl=LSLbl("Loading.",104,12)
+	local enjoyLbl=LSLbl("",128,10)
+
+	local sc=Instance.new("Frame") sc.Size=UDim2.new(0,52,0,52) sc.Position=UDim2.new(0.5,-26,0,150) sc.BackgroundTransparency=1 sc.ZIndex=21 sc.Parent=LS
+	local sa=Instance.new("Frame") sa.Size=UDim2.new(1,0,1,0) sa.BackgroundTransparency=1 sa.ZIndex=22 sa.Parent=sc
+	local sr=Instance.new("Frame") sr.Size=UDim2.new(1,0,1,0) sr.BackgroundColor3=Color3.new(0,0,0) sr.BackgroundTransparency=1 sr.BorderSizePixel=0 sr.ZIndex=22 sr.Parent=sa Cor(sr,26)
+	local ss=Instance.new("UIStroke") ss.Color=C.accent1 ss.Thickness=3.5 ss.ApplyStrokeMode=Enum.ApplyStrokeMode.Border ss.Parent=sr
+	local sd1=Instance.new("Frame") sd1.Size=UDim2.new(0,9,0,9) sd1.Position=UDim2.new(0.5,-4.5,0,-4.5) sd1.BackgroundColor3=C.accent1 sd1.BorderSizePixel=0 sd1.ZIndex=23 sd1.Parent=sa Cor(sd1,5)
+	local sd2=Instance.new("Frame") sd2.Size=UDim2.new(0,6,0,6) sd2.Position=UDim2.new(0.5,-3,1,-1) sd2.BackgroundColor3=C.accent2 sd2.BorderSizePixel=0 sd2.ZIndex=23 sd2.Parent=sa Cor(sd2,3)
+
+	LS.Size=UDim2.new(0,0,0,0) LS.BackgroundTransparency=1
+	Tw(LS,{Size=UDim2.new(0,W,0,230),BackgroundTransparency=0},0.4,Enum.EasingStyle.Back,Enum.EasingDirection.Out):Play()
+
+	local spinAngle=0 local spinConn local pulsing=true
+	spinConn=RunService.Heartbeat:Connect(function(dt) spinAngle=(spinAngle+dt*300)%360 sa.Rotation=spinAngle end)
+	task.spawn(function()
+		while pulsing do
+			Tw(ss,{Color=C.accent2},0.6,Enum.EasingStyle.Sine):Play() task.wait(0.6)
+			Tw(ss,{Color=C.accent1},0.6,Enum.EasingStyle.Sine):Play() task.wait(0.6)
+		end
+	end)
+	local dl={"Loading.","Loading..","Loading..."} local di=1
+	task.spawn(function() while LS.Parent do dotLbl.Text=dl[di] di=di%3+1 task.wait(0.44) end end)
+	task.delay(2.5,function() enjoyLbl.Text="Enjoy!" end)
+	task.delay(3.5,function()
+		pulsing=false spinConn:Disconnect()
+		Tw(LS,{BackgroundTransparency=1,Size=UDim2.new(0,W,0,0)},0.3,Enum.EasingStyle.Back,Enum.EasingDirection.In):Play()
+		task.delay(0.32,function() LS:Destroy() end)
+	end)
+
+	local win=Instance.new("Frame")
+	win.Name="RyuuTraceWin" win.Size=UDim2.new(0,W,0,WIN_H)
+	win.Position=UDim2.new(0.5,-W/2,0.5,-WIN_H/2)
+	win.BackgroundColor3=C.bg win.BorderSizePixel=0 win.ClipsDescendants=true win.Visible=false win.Parent=gui
+	Cor(win,12)
+	local winStroke=Str(win,C.accent1,2)
+	local wg=Instance.new("UIGradient") wg.Color=ColorSequence.new(C.bg,Color3.fromRGB(26,4,46)) wg.Rotation=135 wg.Parent=win
+
+	Orb(win,UDim2.new(0,-7,0,-7),20,C.orbA)
+	Orb(win,UDim2.new(1,-13,0,-7),20,C.orbB)
+	Orb(win,UDim2.new(0,-7,1,-13),20,C.orbB)
+	Orb(win,UDim2.new(1,-13,1,-13),20,C.orbA)
+
+	local tb=Instance.new("Frame") tb.Size=UDim2.new(1,0,0,TOPBAR_H) tb.BackgroundColor3=C.topbar tb.BorderSizePixel=0 tb.ZIndex=4 tb.Parent=win Cor(tb,12)
+	local tbg=Instance.new("UIGradient") tbg.Color=ColorSequence.new(Color3.fromRGB(55,8,85),Color3.fromRGB(38,4,12)) tbg.Rotation=0 tbg.Parent=tb
+	local tbline=Instance.new("Frame") tbline.Size=UDim2.new(1,0,0,1.5) tbline.Position=UDim2.new(0,0,1,-1.5) tbline.BackgroundColor3=C.accent1 tbline.BorderSizePixel=0 tbline.Parent=tb
+	local tlg=Instance.new("UIGradient") tlg.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.new(0,0,0)),ColorSequenceKeypoint.new(0.5,C.accent1),ColorSequenceKeypoint.new(1,Color3.new(0,0,0))} tlg.Parent=tbline
+
+	local iconL=Instance.new("TextLabel") iconL.Size=UDim2.new(0,38,0,36) iconL.Position=UDim2.new(0,8,0,5) iconL.BackgroundTransparency=1 iconL.Text=icon iconL.Font=Enum.Font.GothamBold iconL.TextSize=10 iconL.TextColor3=C.accent1 iconL.ZIndex=5 iconL.Parent=tb
+	local titleL=Instance.new("TextLabel") titleL.Size=UDim2.new(1,-120,0,16) titleL.Position=UDim2.new(0,46,0,7) titleL.BackgroundTransparency=1 titleL.Text=title titleL.Font=Enum.Font.Code titleL.TextSize=13 titleL.TextColor3=Color3.new(1,1,1) titleL.TextXAlignment=Enum.TextXAlignment.Left titleL.ZIndex=5 titleL.Parent=tb
+	local subL=Instance.new("TextLabel") subL.Size=UDim2.new(1,-120,0,13) subL.Position=UDim2.new(0,46,0,26) subL.BackgroundTransparency=1 subL.Text=subtitle subL.Font=Enum.Font.Code subL.TextSize=10 subL.TextColor3=C.textDim subL.TextXAlignment=Enum.TextXAlignment.Left subL.ZIndex=5 subL.Parent=tb
+
+	local function WinCtrlBtn(txt,xOff,bg2)
+		local b=Instance.new("TextButton") b.Size=UDim2.new(0,28,0,26) b.Position=UDim2.new(1,xOff,0,10)
+		b.Text=txt b.Font=Enum.Font.Code b.TextSize=13 b.BackgroundColor3=bg2
+		b.TextColor3=Color3.new(1,1,1) b.AutoButtonColor=false b.BorderSizePixel=0 b.ZIndex=5 b.Parent=tb
+		Cor(b,6) return b
+	end
+	local minBtn=WinCtrlBtn("-",-66,C.panel)
+	local closeBtn=WinCtrlBtn("X",-32,Color3.fromRGB(85,4,14))
+	Str(minBtn,C.accent2,1) Str(closeBtn,C.accent1,1)
+	minBtn.MouseEnter:Connect(function() Tw(minBtn,{BackgroundColor3=C.accent2},0.14):Play() end)
+	minBtn.MouseLeave:Connect(function() Tw(minBtn,{BackgroundColor3=C.panel},0.14):Play() end)
+	closeBtn.MouseEnter:Connect(function() Tw(closeBtn,{BackgroundColor3=C.accent1},0.14):Play() end)
+	closeBtn.MouseLeave:Connect(function() Tw(closeBtn,{BackgroundColor3=Color3.fromRGB(85,4,14)},0.14):Play() end)
+
+	local tabBar=Instance.new("Frame")
+	tabBar.Size=UDim2.new(1,-24,0,TABBAR_H) tabBar.Position=UDim2.new(0,12,0,TOPBAR_H+1)
+	tabBar.BackgroundTransparency=1 tabBar.ZIndex=4 tabBar.Parent=win
+	local tblayout=Instance.new("UIListLayout") tblayout.FillDirection=Enum.FillDirection.Horizontal tblayout.Padding=UDim.new(0,5) tblayout.VerticalAlignment=Enum.VerticalAlignment.Center tblayout.Parent=tabBar
+
+	local sep=Instance.new("Frame") sep.Size=UDim2.new(1,0,0,1) sep.Position=UDim2.new(0,0,0,SEP_Y) sep.BackgroundColor3=C.accent1 sep.BorderSizePixel=0 sep.ZIndex=4 sep.Parent=win
+	local sg=Instance.new("UIGradient") sg.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.new(0,0,0)),ColorSequenceKeypoint.new(0.5,C.accent1),ColorSequenceKeypoint.new(1,Color3.new(0,0,0))} sg.Parent=sep
+
+	local contentFrame=Instance.new("Frame")
+	contentFrame.Size=UDim2.new(1,-24,1,-CONT_Y-4)
+	contentFrame.Position=UDim2.new(0,12,0,CONT_Y)
+	contentFrame.BackgroundTransparency=1 contentFrame.ClipsDescendants=true contentFrame.ZIndex=3 contentFrame.Parent=win
+
+	local dragging,dragStart,startPos=false,nil,nil
+	tb.InputBegan:Connect(function(inp)
+		if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then
+			dragging=true dragStart=inp.Position startPos=win.Position
+			inp.Changed:Connect(function() if inp.UserInputState==Enum.UserInputState.End then dragging=false end end)
+		end
+	end)
+	UIS.InputChanged:Connect(function(inp)
+		if dragging and (inp.UserInputType==Enum.UserInputType.MouseMovement or inp.UserInputType==Enum.UserInputType.Touch) then
+			local d=inp.Position-dragStart
+			win.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+d.X,startPos.Y.Scale,startPos.Y.Offset+d.Y)
+		end
+	end)
+
+	local minimized=false
+	minBtn.MouseButton1Click:Connect(function()
+		minimized=not minimized
+		if minimized then
+			Tw(win,{Size=UDim2.new(0,W,0,TOPBAR_H)},0.25,Enum.EasingStyle.Back):Play()
+			task.delay(0.12,function() contentFrame.Visible=false tabBar.Visible=false sep.Visible=false end)
+			minBtn.Text="+"
+		else
+			contentFrame.Visible=true tabBar.Visible=true sep.Visible=true
+			Tw(win,{Size=UDim2.new(0,W,0,WIN_H)},0.25,Enum.EasingStyle.Back):Play()
+			minBtn.Text="-"
+		end
+	end)
+	closeBtn.MouseButton1Click:Connect(function()
+		Tw(win,{BackgroundTransparency=1,Size=UDim2.new(0,0,0,0)},0.2):Play()
+		task.delay(0.22,function() gui:Destroy() end)
+	end)
+
+	task.delay(3.5,function()
+		win.Visible=true win.Size=UDim2.new(0,0,0,0) win.BackgroundTransparency=1
+		Tw(win,{Size=UDim2.new(0,W,0,WIN_H),BackgroundTransparency=0},0.4,Enum.EasingStyle.Back,Enum.EasingDirection.Out):Play()
+	end)
+	task.spawn(function()
+		while win.Parent do
+			Tw(winStroke,{Color=C.accent2},1.1,Enum.EasingStyle.Sine):Play() task.wait(1.1)
+			Tw(winStroke,{Color=C.accent1},1.1,Enum.EasingStyle.Sine):Play() task.wait(1.1)
+		end
+	end)
+
+	local tabs={} local activeTab=nil
+
+	local function switchTab(name)
+		if activeTab==name then return end
+		activeTab=name
+		for n,data in pairs(tabs) do
+			data.page.Visible=(n==name)
+			if n==name then Tw(data.btn,{BackgroundColor3=C.tabActive},0.15):Play() data.btn.TextColor3=Color3.new(1,1,1)
+			else Tw(data.btn,{BackgroundColor3=C.tabIdle},0.15):Play() data.btn.TextColor3=C.textDim end
+		end
+	end
+
+	local winObj={}
+
+	function winObj:NewTab(name)
+		local btn=Instance.new("TextButton")
+		btn.Size=UDim2.new(0,78,0,22) btn.Text=name btn.Font=Enum.Font.Code btn.TextSize=11
+		btn.BackgroundColor3=C.tabIdle btn.TextColor3=C.textDim
+		btn.AutoButtonColor=false btn.BorderSizePixel=0 btn.ZIndex=5 btn.Parent=tabBar
+		Cor(btn,6) Str(btn,C.stroke,1)
+
+		local page=Instance.new("ScrollingFrame")
+		page.Size=UDim2.new(1,0,1,0) page.BackgroundTransparency=1 page.BorderSizePixel=0
+		page.ScrollBarThickness=3 page.ScrollBarImageColor3=C.accent2
+		page.CanvasSize=UDim2.new(0,0,0,0) page.AutomaticCanvasSize=Enum.AutomaticSize.Y
+		page.Visible=false page.ZIndex=3 page.Parent=contentFrame
+
+		local layout=Instance.new("UIListLayout") layout.SortOrder=Enum.SortOrder.LayoutOrder layout.Padding=UDim.new(0,5) layout.Parent=page
+		local pad=Instance.new("UIPadding") pad.PaddingTop=UDim.new(0,4) pad.PaddingBottom=UDim.new(0,6) pad.Parent=page
+
+		tabs[name]={btn=btn,page=page}
+		btn.MouseButton1Click:Connect(function() switchTab(name) end)
+		if not activeTab then switchTab(name) end
+
+		local tabObj={}
+
+		function tabObj:AddLabel(text)
+			local f=Instance.new("Frame") f.Size=UDim2.new(1,0,0,24) f.BackgroundTransparency=1 f.Parent=page
+			local l=Instance.new("TextLabel") l.Size=UDim2.new(1,-10,1,0) l.Position=UDim2.new(0,5,0,0) l.BackgroundTransparency=1 l.Text=text l.Font=Enum.Font.Code l.TextSize=11 l.TextColor3=C.textDim l.TextXAlignment=Enum.TextXAlignment.Center l.ZIndex=4 l.Parent=f
+		end
+
+		function tabObj:AddToggle(label,default,callback)
+			local bg=Instance.new("Frame") bg.Size=UDim2.new(1,0,0,36) bg.BackgroundColor3=C.panel bg.BorderSizePixel=0 bg.ZIndex=4 bg.Parent=page Cor(bg,8) Str(bg,C.stroke,1)
+			local lbl=Instance.new("TextLabel") lbl.Size=UDim2.new(1,-58,1,0) lbl.Position=UDim2.new(0,10,0,0) lbl.BackgroundTransparency=1 lbl.Text=label lbl.Font=Enum.Font.Code lbl.TextSize=12 lbl.TextColor3=C.textMain lbl.TextXAlignment=Enum.TextXAlignment.Left lbl.ZIndex=5 lbl.Parent=bg
+			local track=Instance.new("Frame") track.Size=UDim2.new(0,40,0,21) track.Position=UDim2.new(1,-50,0.5,-10.5) track.BorderSizePixel=0 track.ZIndex=5 track.Parent=bg Cor(track,11)
+			local knob=Instance.new("Frame") knob.Size=UDim2.new(0,15,0,15) knob.BackgroundColor3=Color3.new(1,1,1) knob.BorderSizePixel=0 knob.ZIndex=6 knob.Parent=track Cor(knob,8)
+			local state=default==true
+			if state then track.BackgroundColor3=C.toggleOn knob.Position=UDim2.new(0,22,0.5,-7.5) else track.BackgroundColor3=C.toggleOff knob.Position=UDim2.new(0,3,0.5,-7.5) end
+			local hit=Instance.new("TextButton") hit.Size=UDim2.new(1,0,1,0) hit.BackgroundTransparency=1 hit.Text="" hit.ZIndex=7 hit.Parent=bg
+			hit.MouseButton1Click:Connect(function()
+				state=not state
+				if state then Tw(track,{BackgroundColor3=C.toggleOn},0.18):Play() Tw(knob,{Position=UDim2.new(0,22,0.5,-7.5)},0.18,Enum.EasingStyle.Back):Play()
+				else Tw(track,{BackgroundColor3=C.toggleOff},0.18):Play() Tw(knob,{Position=UDim2.new(0,3,0.5,-7.5)},0.18,Enum.EasingStyle.Back):Play() end
+				if callback then callback(state) end
+			end)
+		end
+
+		function tabObj:AddButton(label,callback)
+			local btn2=Instance.new("TextButton") btn2.Size=UDim2.new(1,0,0,36) btn2.Text=label btn2.Font=Enum.Font.Code btn2.TextSize=12 btn2.BackgroundColor3=C.btnIdle btn2.TextColor3=Color3.new(1,1,1) btn2.AutoButtonColor=false btn2.BorderSizePixel=0 btn2.ZIndex=4 btn2.Parent=page Cor(btn2,8) Str(btn2,C.accent1,1.5)
+			local g=Instance.new("UIGradient") g.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.fromRGB(75,0,18)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(105,0,28)),ColorSequenceKeypoint.new(1,Color3.fromRGB(55,0,55))} g.Rotation=90 g.Parent=btn2
+			btn2.MouseEnter:Connect(function() Tw(btn2,{BackgroundColor3=C.btnHover},0.14):Play() end)
+			btn2.MouseLeave:Connect(function() Tw(btn2,{BackgroundColor3=C.btnIdle},0.14):Play() end)
+			btn2.MouseButton1Click:Connect(function() if callback then callback() end end)
+		end
+
+		function tabObj:AddInput(label,placeholder,callback)
+			local bg=Instance.new("Frame") bg.Size=UDim2.new(1,0,0,58) bg.BackgroundTransparency=1 bg.ZIndex=4 bg.Parent=page
+			local lbl=Instance.new("TextLabel") lbl.Size=UDim2.new(1,0,0,18) lbl.BackgroundTransparency=1 lbl.Text=label lbl.Font=Enum.Font.Code lbl.TextSize=11 lbl.TextColor3=C.textDim lbl.TextXAlignment=Enum.TextXAlignment.Left lbl.ZIndex=5 lbl.Parent=bg
+			local box=Instance.new("TextBox") box.Size=UDim2.new(1,0,0,34) box.Position=UDim2.new(0,0,0,20) box.BackgroundColor3=C.inputBg box.BorderSizePixel=0 box.Text="" box.PlaceholderText=placeholder or "" box.Font=Enum.Font.Code box.TextSize=12 box.TextColor3=C.textMain box.PlaceholderColor3=C.textDim box.ClearTextOnFocus=false box.ZIndex=5 box.Parent=bg Cor(box,8)
+			local bs=Str(box,C.accent2,1.5)
+			box.Focused:Connect(function() Tw(bs,{Color=C.accent1,Thickness=2},0.15):Play() Tw(box,{BackgroundColor3=Color3.fromRGB(22,7,40)},0.15):Play() end)
+			box.FocusLost:Connect(function(enter) Tw(bs,{Color=C.accent2,Thickness=1.5},0.15):Play() Tw(box,{BackgroundColor3=C.inputBg},0.15):Play() if enter and callback then callback(box.Text) end end)
+		end
+
+		function tabObj:AddSlider(label,min,max,default,callback)
+			local bg=Instance.new("Frame") bg.Size=UDim2.new(1,0,0,54) bg.BackgroundTransparency=1 bg.ZIndex=4 bg.Parent=page
+			local topRow=Instance.new("Frame") topRow.Size=UDim2.new(1,0,0,18) topRow.BackgroundTransparency=1 topRow.ZIndex=5 topRow.Parent=bg
+			local lbl=Instance.new("TextLabel") lbl.Size=UDim2.new(0.7,0,1,0) lbl.BackgroundTransparency=1 lbl.Text=label lbl.Font=Enum.Font.Code lbl.TextSize=11 lbl.TextColor3=C.textDim lbl.TextXAlignment=Enum.TextXAlignment.Left lbl.ZIndex=6 lbl.Parent=topRow
+			local valLbl=Instance.new("TextLabel") valLbl.Size=UDim2.new(0.3,0,1,0) valLbl.Position=UDim2.new(0.7,0,0,0) valLbl.BackgroundTransparency=1 valLbl.Font=Enum.Font.Code valLbl.TextSize=11 valLbl.TextColor3=C.textMain valLbl.TextXAlignment=Enum.TextXAlignment.Right valLbl.ZIndex=6 valLbl.Parent=topRow
+			local track=Instance.new("Frame") track.Size=UDim2.new(1,0,0,8) track.Position=UDim2.new(0,0,0,28) track.BackgroundColor3=C.panel track.BorderSizePixel=0 track.ZIndex=5 track.Parent=bg Cor(track,4) Str(track,C.stroke,1)
+			local fill=Instance.new("Frame") fill.Size=UDim2.new(0,0,1,0) fill.BackgroundColor3=C.sliderFill fill.BorderSizePixel=0 fill.ZIndex=6 fill.Parent=track Cor(fill,4)
+			local thumb=Instance.new("Frame") thumb.Size=UDim2.new(0,14,0,14) thumb.AnchorPoint=Vector2.new(0.5,0.5) thumb.BackgroundColor3=Color3.new(1,1,1) thumb.BorderSizePixel=0 thumb.ZIndex=7 thumb.Parent=track Cor(thumb,7)
+			local val=math.clamp(default or min,min,max)
+			local function setVal(v)
+				val=math.clamp(v,min,max)
+				local pct=(val-min)/(max-min)
+				Tw(fill,{Size=UDim2.new(pct,0,1,0)},0.1):Play()
+				Tw(thumb,{Position=UDim2.new(pct,0,0.5,0)},0.1):Play()
+				valLbl.Text=tostring(math.floor(val*10+0.5)/10)
+				if callback then callback(val) end
+			end
+			setVal(val)
+			local sliding=false
+			local hitbox=Instance.new("TextButton") hitbox.Size=UDim2.new(1,0,0,22) hitbox.Position=UDim2.new(0,0,0,18) hitbox.BackgroundTransparency=1 hitbox.Text="" hitbox.ZIndex=8 hitbox.Parent=bg
+			hitbox.MouseButton1Down:Connect(function() sliding=true end)
+			UIS.InputEnded:Connect(function(inp) if inp.UserInputType==Enum.UserInputType.MouseButton1 or inp.UserInputType==Enum.UserInputType.Touch then sliding=false end end)
+			UIS.InputChanged:Connect(function(inp)
+				if sliding and (inp.UserInputType==Enum.UserInputType.MouseMovement or inp.UserInputType==Enum.UserInputType.Touch) then
+					local pct=math.clamp((inp.Position.X-track.AbsolutePosition.X)/track.AbsoluteSize.X,0,1)
+					setVal(min+(max-min)*pct)
+				end
+			end)
+		end
+
+		function tabObj:AddDropdown(label,options,default,callback)
+			local ITEM_H=28
+			local bg=Instance.new("Frame") bg.Size=UDim2.new(1,0,0,54) bg.BackgroundTransparency=1 bg.ZIndex=4 bg.ClipsDescendants=false bg.Parent=page
+			local lbl=Instance.new("TextLabel") lbl.Size=UDim2.new(1,0,0,18) lbl.BackgroundTransparency=1 lbl.Text=label lbl.Font=Enum.Font.Code lbl.TextSize=11 lbl.TextColor3=C.textDim lbl.TextXAlignment=Enum.TextXAlignment.Left lbl.ZIndex=5 lbl.Parent=bg
+			local header=Instance.new("TextButton") header.Size=UDim2.new(1,0,0,30) header.Position=UDim2.new(0,0,0,20) header.BackgroundColor3=C.dropBg header.BorderSizePixel=0 header.Text="" header.AutoButtonColor=false header.ZIndex=5 header.Parent=bg Cor(header,8) Str(header,C.accent2,1.5)
+			local selLbl=Instance.new("TextLabel") selLbl.Size=UDim2.new(1,-30,1,0) selLbl.Position=UDim2.new(0,10,0,0) selLbl.BackgroundTransparency=1 selLbl.Font=Enum.Font.Code selLbl.TextSize=12 selLbl.TextColor3=C.textMain selLbl.TextXAlignment=Enum.TextXAlignment.Left selLbl.ZIndex=6 selLbl.Parent=header
+			local arrow=Instance.new("TextLabel") arrow.Size=UDim2.new(0,24,1,0) arrow.Position=UDim2.new(1,-26,0,0) arrow.BackgroundTransparency=1 arrow.Text="v" arrow.Font=Enum.Font.Code arrow.TextSize=11 arrow.TextColor3=C.textDim arrow.ZIndex=6 arrow.Parent=header
+			local selected=default or (options[1] or "")
+			selLbl.Text=selected
+			local dropList=Instance.new("Frame") dropList.Size=UDim2.new(1,0,0,#options*ITEM_H+4) dropList.Position=UDim2.new(0,0,0,52) dropList.BackgroundColor3=C.dropBg dropList.BorderSizePixel=0 dropList.ZIndex=10 dropList.Visible=false dropList.Parent=bg Cor(dropList,8) Str(dropList,C.accent2,1.5)
+			local dl2=Instance.new("UIListLayout") dl2.SortOrder=Enum.SortOrder.LayoutOrder dl2.Padding=UDim.new(0,2) dl2.Parent=dropList
+			local dp=Instance.new("UIPadding") dp.PaddingTop=UDim.new(0,2) dp.PaddingBottom=UDim.new(0,2) dp.PaddingLeft=UDim.new(0,2) dp.PaddingRight=UDim.new(0,2) dp.Parent=dropList
+			local open=false
+			local function setOpen(v)
+				open=v dropList.Visible=v
+				bg.Size=v and UDim2.new(1,0,0,54+#options*ITEM_H+8) or UDim2.new(1,0,0,54)
+				arrow.Text=v and "^" or "v"
+			end
+			for i,opt in ipairs(options) do
+				local item=Instance.new("TextButton") item.Size=UDim2.new(1,0,0,ITEM_H) item.BackgroundColor3=C.dropItem item.BorderSizePixel=0 item.Text=opt item.Font=Enum.Font.Code item.TextSize=11 item.TextColor3=C.textMain item.AutoButtonColor=false item.ZIndex=11 item.LayoutOrder=i item.Parent=dropList Cor(item,6)
+				item.MouseEnter:Connect(function() Tw(item,{BackgroundColor3=C.dropHover},0.12):Play() end)
+				item.MouseLeave:Connect(function() Tw(item,{BackgroundColor3=C.dropItem},0.12):Play() end)
+				item.MouseButton1Click:Connect(function() selected=opt selLbl.Text=opt setOpen(false) if callback then callback(opt) end end)
+			end
+			header.MouseButton1Click:Connect(function() setOpen(not open) end)
+		end
+
+		function tabObj:AddDropdownToggle(label,options,default,callback)
+			local ITEM_H=30
+			local states={}
+			for _,o in ipairs(options) do states[o]=(default and table.find(default,o)~=nil) end
+			local bg=Instance.new("Frame") bg.Size=UDim2.new(1,0,0,54) bg.BackgroundTransparency=1 bg.ZIndex=4 bg.ClipsDescendants=false bg.Parent=page
+			local lbl=Instance.new("TextLabel") lbl.Size=UDim2.new(1,0,0,18) lbl.BackgroundTransparency=1 lbl.Text=label lbl.Font=Enum.Font.Code lbl.TextSize=11 lbl.TextColor3=C.textDim lbl.TextXAlignment=Enum.TextXAlignment.Left lbl.ZIndex=5 lbl.Parent=bg
+			local header=Instance.new("TextButton") header.Size=UDim2.new(1,0,0,30) header.Position=UDim2.new(0,0,0,20) header.BackgroundColor3=C.dropBg header.BorderSizePixel=0 header.Text="" header.AutoButtonColor=false header.ZIndex=5 header.Parent=bg Cor(header,8) Str(header,C.accent2,1.5)
+			local selLbl=Instance.new("TextLabel") selLbl.Size=UDim2.new(1,-30,1,0) selLbl.Position=UDim2.new(0,10,0,0) selLbl.BackgroundTransparency=1 selLbl.Font=Enum.Font.Code selLbl.TextSize=12 selLbl.TextColor3=C.textMain selLbl.TextXAlignment=Enum.TextXAlignment.Left selLbl.ZIndex=6 selLbl.Parent=header
+			local arrow=Instance.new("TextLabel") arrow.Size=UDim2.new(0,24,1,0) arrow.Position=UDim2.new(1,-26,0,0) arrow.BackgroundTransparency=1 arrow.Text="v" arrow.Font=Enum.Font.Code arrow.TextSize=11 arrow.TextColor3=C.textDim arrow.ZIndex=6 arrow.Parent=header
+			local function updateHeader()
+				local on={} for o,s in pairs(states) do if s then table.insert(on,o) end end
+				selLbl.Text=#on>0 and table.concat(on,", ") or "None"
+			end
+			updateHeader()
+			local dropList=Instance.new("Frame") dropList.Size=UDim2.new(1,0,0,#options*ITEM_H+4) dropList.Position=UDim2.new(0,0,0,52) dropList.BackgroundColor3=C.dropBg dropList.BorderSizePixel=0 dropList.ZIndex=10 dropList.Visible=false dropList.Parent=bg Cor(dropList,8) Str(dropList,C.accent2,1.5)
+			local dl3=Instance.new("UIListLayout") dl3.SortOrder=Enum.SortOrder.LayoutOrder dl3.Padding=UDim.new(0,2) dl3.Parent=dropList
+			local dp2=Instance.new("UIPadding") dp2.PaddingTop=UDim.new(0,2) dp2.PaddingBottom=UDim.new(0,2) dp2.PaddingLeft=UDim.new(0,2) dp2.PaddingRight=UDim.new(0,2) dp2.Parent=dropList
+			local open=false
+			local function setOpen(v)
+				open=v dropList.Visible=v
+				bg.Size=v and UDim2.new(1,0,0,54+#options*ITEM_H+8) or UDim2.new(1,0,0,54)
+				arrow.Text=v and "^" or "v"
+			end
+			for i,opt in ipairs(options) do
+				local row=Instance.new("Frame") row.Size=UDim2.new(1,0,0,ITEM_H) row.BackgroundColor3=C.dropItem row.BorderSizePixel=0 row.ZIndex=11 row.LayoutOrder=i row.Parent=dropList Cor(row,6)
+				local rowLbl=Instance.new("TextLabel") rowLbl.Size=UDim2.new(1,-50,1,0) rowLbl.Position=UDim2.new(0,10,0,0) rowLbl.BackgroundTransparency=1 rowLbl.Text=opt rowLbl.Font=Enum.Font.Code rowLbl.TextSize=11 rowLbl.TextColor3=C.textMain rowLbl.TextXAlignment=Enum.TextXAlignment.Left rowLbl.ZIndex=12 rowLbl.Parent=row
+				local rtrack=Instance.new("Frame") rtrack.Size=UDim2.new(0,34,0,17) rtrack.Position=UDim2.new(1,-42,0.5,-8.5) rtrack.BorderSizePixel=0 rtrack.ZIndex=12 rtrack.Parent=row Cor(rtrack,9)
+				local rknob=Instance.new("Frame") rknob.Size=UDim2.new(0,12,0,12) rknob.BackgroundColor3=Color3.new(1,1,1) rknob.BorderSizePixel=0 rknob.ZIndex=13 rknob.Parent=rtrack Cor(rknob,6)
+				local function refreshRow()
+					if states[opt] then rtrack.BackgroundColor3=C.toggleOn rknob.Position=UDim2.new(0,19,0.5,-6)
+					else rtrack.BackgroundColor3=C.toggleOff rknob.Position=UDim2.new(0,3,0.5,-6) end
+				end
+				refreshRow()
+				local rhit=Instance.new("TextButton") rhit.Size=UDim2.new(1,0,1,0) rhit.BackgroundTransparency=1 rhit.Text="" rhit.ZIndex=14 rhit.Parent=row
+				rhit.MouseEnter:Connect(function() Tw(row,{BackgroundColor3=C.dropHover},0.12):Play() end)
+				rhit.MouseLeave:Connect(function() Tw(row,{BackgroundColor3=C.dropItem},0.12):Play() end)
+				rhit.MouseButton1Click:Connect(function()
+					states[opt]=not states[opt] refreshRow() updateHeader()
+					if callback then callback(opt,states[opt],states) end
+				end)
+			end
+			header.MouseButton1Click:Connect(function() setOpen(not open) end)
+		end
+
+		return tabObj
+	end
+
+	return winObj
+end
+
+return RyuuTrace
